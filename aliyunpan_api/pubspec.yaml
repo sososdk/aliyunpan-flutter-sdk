@@ -1,15 +1,16 @@
 name: aliyunpan_api
-description: A starting point for Dart libraries or applications.
+description: 阿里云盘开放平台接口.
 version: 1.0.0
-# repository: https://github.com/my_org/my_repo
+homepage: https://github.com/sososdk/aliyunpan-flutter-sdk
+repository: https://github.com/sososdk/aliyunpan-flutter-sdk/tree/master/aliyunpan_api
 
 environment:
   sdk: ^3.3.4
 
-# Add regular dependencies here.
 dependencies:
-  # path: ^1.8.0
+  path: ^1.9.0
+  crypto: ^3.0.3
 
 dev_dependencies:
-  lints: ^3.0.0
-  test: ^1.24.0
+  lints: ^4.0.0
+  test: ^1.25.5

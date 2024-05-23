@@ -1,0 +1,13 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.github.sososdk.aliyunpan_flutter_sdk_auth">
+
+    <application>
+        <activity
+            android:name=".AuthActivity"
+            android:launchMode="singleTask" />
+        <activity-alias
+            android:name="${applicationId}.ypauth.YPAuthActivity"
+            android:exported="true"
+            android:targetActivity=".AuthActivity" />
+    </application>
+</manifest>

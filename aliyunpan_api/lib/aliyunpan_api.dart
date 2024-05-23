@@ -1,8 +1,21 @@
-/// Support for doing something awesome.
-///
-/// More dartdocs go here.
-library;
+library aliyunpan_api;
 
-export 'src/aliyunpan_api_base.dart';
-
-// TODO: Export any libraries intended for clients of this package.
+export 'src/client.dart';
+export 'src/command/album_scope.dart';
+export 'src/command/command.dart';
+export 'src/command/file_scope.dart';
+export 'src/command/oauth_scope.dart';
+export 'src/command/user_scope.dart';
+export 'src/command/video_scope.dart';
+export 'src/command/vip_scope.dart';
+export 'src/credentials.dart';
+export 'src/exception.dart';
+export 'src/model/album.dart';
+export 'src/model/drive.dart';
+export 'src/model/file.dart';
+export 'src/model/oauth.dart';
+export 'src/model/space.dart';
+export 'src/model/user.dart';
+export 'src/model/video.dart';
+export 'src/model/vip.dart';
+export 'src/model/vip_feature.dart';

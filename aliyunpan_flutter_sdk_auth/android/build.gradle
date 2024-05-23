@@ -1,0 +1,119 @@
+import org.yaml.snakeyaml.Yaml
+
+group 'com.github.sososdk.aliyunpan_flutter_sdk_auth'
+version '1.0-SNAPSHOT'
+
+buildscript {
+    ext.kotlin_version = '1.7.10'
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath "org.yaml:snakeyaml:2.0"
+        classpath 'com.android.tools.build:gradle:7.3.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+android {
+    if (project.android.hasProperty("namespace")) {
+        namespace 'com.github.sososdk.aliyunpan_flutter_sdk_auth'
+    }
+
+    compileSdk 34
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+        main.java.srcDirs += "$buildDir/generated/src/kotlin"
+        test.java.srcDirs += 'src/test/kotlin'
+    }
+
+    defaultConfig {
+        minSdkVersion 19
+    }
+
+    dependencies {
+        testImplementation 'org.jetbrains.kotlin:kotlin-test'
+        testImplementation 'org.mockito:mockito-core:5.11.0'
+    }
+
+    testOptions {
+        unitTests.all {
+            useJUnitPlatform()
+
+            testLogging {
+               events "passed", "skipped", "failed", "standardOut", "standardError"
+               outputs.upToDateWhen {false}
+               showStandardStreams = true
+            }
+        }
+    }
+}
+
+Map loadPubspec() {
+    def path = rootProject.projectDir.parent + File.separator + "pubspec.yaml"
+    InputStream input = new FileInputStream(new File(path))
+    Yaml yaml = new Yaml()
+    return yaml.load(input)
+}
+
+tasks.register("generatePluginConfigFile") {
+    doFirst {
+        Map config = loadPubspec()
+        Map aliyunpan = (Map) config.get("aliyunpan")
+        String flutterActivity = ""
+        if (aliyunpan) {
+            Map android = (Map) aliyunpan.get("android")
+            if (android) {
+                def activity = android.get("flutter_activity")
+                if (activity) {
+                    flutterActivity = (String) activity
+                }
+            }
+        }
+
+        generatePluginConfig(flutterActivity)
+    }
+}
+
+def generatePluginConfig(String flutterActivity) {
+    File generateFolder = new File("${buildDir}/generated/src/kotlin/com/github/sososdk/aliyunpan_flutter_sdk_auth")
+    if (!generateFolder.exists()) {
+        generateFolder.mkdirs()
+    }
+    String source = """/**
+ * Automatically generated file. DO NOT MODIFY
+ */
+package com.github.sososdk.aliyunpan_flutter_sdk_auth
+
+internal object PluginConfig {
+    val flutterActivity: String = "${flutterActivity}"
+}
+"""
+    file("${generateFolder.absolutePath}/PluginConfig.kt").text = source
+}
+
+android.libraryVariants.configureEach {
+    it.registerGeneratedResFolders(project.files(new File("${buildDir}/generated/src/kotlin/com/github/sososdk/aliyunpan_flutter_sdk")).builtBy(generatePluginConfigFile))
+}
