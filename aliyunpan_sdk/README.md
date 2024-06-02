@@ -20,7 +20,7 @@ dependencies:
 
 > 如果不使用阿里云盘客户端登录, 请跳过配置步骤.
 
-在`pubspec.yaml`的`aliyunpan`进行一些配置. 具体可以参考[pubspec.yaml](./example/pubspec.yaml#L24).
+在`pubspec.yaml`的`aliyunpan`进行一些配置. 具体可以参考[pubspec.yaml](../example/pubspec.yaml#L24).
 
 - app_id. 推荐. 它将用于生成iOS的url_scheme和LSApplicationQueriesSchemes.
 - flutter_activity. 可选. 这个通常是用于Android的冷启动。如果不设置任何值，`aliyunpan sdk`将尝试启动launcher activity.
@@ -39,7 +39,7 @@ dependencies:
 
 * For Android
 
-  修改`applicationId`为你在阿里云盘开放平台注册时填写的`应用包名`。参考[build.gradle](./example/android/app/build.gradle#L45).
+  修改`applicationId`为你在阿里云盘开放平台注册时填写的`应用包名`。参考[build.gradle](../example/android/app/build.gradle#L45).
 
 ## 使用
 
@@ -114,7 +114,7 @@ await client.uploader.enqueue(UploadTask);
 
 ### 监听上传状态
 ```dart
-await client.uploader.updates.listen((event) {});
+client.uploader.updates.listen((event) {});
 ```
 
 ### 下载
@@ -125,7 +125,7 @@ await client.downloader.enqueue(DownloadTask);
 
 ### 监听下载状态
 ```dart
-await client.downloader.updates.listen((event) {});
+client.downloader.updates.listen((event) {});
 ```
 
 ## 谁在使用
