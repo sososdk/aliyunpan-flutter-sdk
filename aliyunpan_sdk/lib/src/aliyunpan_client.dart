@@ -140,6 +140,7 @@ class AliyunpanClient implements ClientBase {
   Future close() async {
     if (_closed) return;
     _closed = true;
+    dio.close(force: true);
     await _uploader.close();
     await _downloader.close();
   }
