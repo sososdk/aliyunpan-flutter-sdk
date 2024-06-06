@@ -1,3 +1,7 @@
+## 1.0.2
+
+- close dio on client close.
+
 ## 1.0.1
 
 - update dependencies.

@@ -1,6 +1,6 @@
 name: aliyunpan_sdk
 description: 阿里云盘开放平台 SDK.
-version: 1.0.1
+version: 1.0.2
 homepage: https://github.com/sososdk/aliyunpan-flutter-sdk
 repository: https://github.com/sososdk/aliyunpan-flutter-sdk/tree/master/aliyunpan_sdk
 
