@@ -4,6 +4,8 @@ import 'package:aliyunpan_api/aliyunpan_api.dart';
 import 'package:aliyunpan_flutter_sdk_auth/src/aliyunpan_flutter_sdk_auth.dart';
 import 'package:flutter/foundation.dart';
 
+export 'src/aliyunpan_flutter_sdk_auth.dart';
+
 typedef AuthRedirect = Future<String?> Function(
     Uri uri, bool Function(String url) accept);
 

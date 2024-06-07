@@ -13,7 +13,7 @@
 dependencies:
   aliyunpan_sdk: ^1.0.2
   # 使用阿里云盘客户端登录时, 需要添加此依赖
-  aliyunpan_flutter_sdk_auth: ^1.0.0
+  aliyunpan_flutter_sdk_auth: ^1.0.1
 ```
 
 ### 配置:

@@ -1,6 +1,6 @@
 name: aliyunpan_flutter_sdk_auth
 description: "A Flutter plugin for aliyunpan oauth."
-version: 1.0.0
+version: 1.0.1
 homepage: https://github.com/sososdk/aliyunpan-flutter-sdk
 repository: https://github.com/sososdk/aliyunpan-flutter-sdk/tree/master/aliyunpan_flutter_sdk_auth
 
