@@ -19,6 +19,10 @@ class AuthorizeException extends AliyunpanException {
   const AuthorizeException({super.message});
 }
 
+class AuthorizeExpiredException extends AuthorizeException {
+  const AuthorizeExpiredException({super.message});
+}
+
 /// 获取 auth code 错误
 class AuthcodeException extends AuthorizeException {
   const AuthcodeException({super.message});

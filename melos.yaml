@@ -2,3 +2,13 @@ name: aliyunpan
 
 packages:
   - ./**
+
+scripts:
+  get:
+    run: melos exec --no-flutter -- dart pub get && melos exec --flutter -- flutter pub get
+
+  # melos exec --depends-on=build_runner -- dart run build_runner build --delete-conflicting-outputs
+  runner:
+    exec: dart run build_runner build --delete-conflicting-outputs
+    packageFilters:
+      dependsOn: build_runner

@@ -153,7 +153,7 @@ class QrcodeCredentials extends Credentials {
       while (true) {
         if (timeout) {
           assert(false, 'IMPOSSIBLE');
-          throw const AuthorizeException(message: 'qrcode expired');
+          throw const AuthorizeExpiredException(message: 'qrcode expired');
         }
         if (canceled()) {
           throw const AuthorizeException(message: 'user canceled');
@@ -183,12 +183,12 @@ class QrcodeCredentials extends Credentials {
               ));
             }
           case QrcodeAuthorizeStatus.qrcodeExpired:
-            throw const AuthorizeException(message: 'qrcode expired');
+            throw const AuthorizeExpiredException(message: 'qrcode expired');
         }
       }
     }).timeout(const Duration(minutes: 3), onTimeout: () {
       timeout = true;
-      throw const AuthorizeException(message: 'qrcode expired');
+      throw const AuthorizeExpiredException(message: 'qrcode expired');
     });
   }
 }
