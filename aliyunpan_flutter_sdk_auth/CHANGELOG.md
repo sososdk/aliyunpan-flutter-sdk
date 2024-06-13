@@ -1,5 +1,9 @@
 ## 1.0.1
 
+* update dependencies.
+
+## 1.0.1
+
 * Export AliyunpanFlutterSdkAuth.
 
 ## 1.0.0

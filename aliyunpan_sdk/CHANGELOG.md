@@ -1,6 +1,6 @@
-## 1.0.3
+## 1.0.4
 
-- add AuthorizeExpiredException.
+- update dependencies.
 
 ## 1.0.2
 
