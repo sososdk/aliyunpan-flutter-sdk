@@ -88,7 +88,7 @@ class FlutterCredentials extends Credentials {
     ));
     // 3. 获取授权码
     final code = await authenticator.authorize(redirectUri);
-    onStateChange(const RedirectAuthorizeReady());
+    onStateChange(const AuthorizeCodeReady());
     // 4. 获取 token
     if (requestTokenFunction != null) {
       return requestTokenFunction!(code);
@@ -171,6 +171,7 @@ class QrcodeCredentials extends Credentials {
           case QrcodeAuthorizeStatus.scanSuccess:
             onStateChange(const QrcodeAuthorizeScanSuccess());
           case QrcodeAuthorizeStatus.loginSuccess:
+            onStateChange(const AuthorizeCodeReady());
             final code = result.authCode!;
             if (requestTokenFunction != null) {
               return requestTokenFunction!(code);
@@ -245,7 +246,7 @@ class WebCredentials extends Credentials {
     }
     // 3. 获取授权码
     final code = await authenticator.authorize(redirectUri);
-    onStateChange(const RedirectAuthorizeReady());
+    onStateChange(const AuthorizeCodeReady());
     // 4. 获取 token
     if (requestTokenFunction != null) {
       return requestTokenFunction!(code);

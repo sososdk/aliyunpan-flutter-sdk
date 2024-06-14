@@ -26,11 +26,6 @@ sealed class RedirectAuthorizeRequestAuthcode extends AuthorizeRequestAuthcode {
   const RedirectAuthorizeRequestAuthcode();
 }
 
-/// 获取 RedirectUri 成功
-class RedirectAuthorizeReady extends RedirectAuthorizeRequestAuthcode {
-  const RedirectAuthorizeReady();
-}
-
 /// 扫码授权模式: 获取 auth code 状态
 sealed class QrcodeAuthorizeRequestAuthcode extends AuthorizeRequestAuthcode {
   const QrcodeAuthorizeRequestAuthcode();
@@ -54,4 +49,9 @@ class QrcodeAuthorizeWaitLogin extends QrcodeAuthorizeRequestAuthcode {
 /// 扫码成功
 class QrcodeAuthorizeScanSuccess extends QrcodeAuthorizeRequestAuthcode {
   const QrcodeAuthorizeScanSuccess();
+}
+
+/// 获取 auth code 成功
+class AuthorizeCodeReady extends AuthorizeState {
+  const AuthorizeCodeReady();
 }
