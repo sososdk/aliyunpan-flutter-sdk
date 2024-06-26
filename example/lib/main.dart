@@ -105,7 +105,7 @@ class _MyHomePageState extends State<MyHomePage> {
       }
     });
   }
-  
+
   @override
   void dispose() {
     client.close();
@@ -564,10 +564,12 @@ class _WebViewPageState extends State<WebViewPage> {
         onProgress: (int progress) {
           // Update loading bar.
         },
-        onPageStarted: (String url) {
-          if (widget.accept?.call(url) ?? false) {
-            Navigator.pop(context, url);
+        onNavigationRequest: (request) {
+          if (widget.accept?.call(request.url) ?? false) {
+            Navigator.pop(context, request.url);
+            return NavigationDecision.prevent;
           }
+          return NavigationDecision.navigate;
         },
       ),
     )

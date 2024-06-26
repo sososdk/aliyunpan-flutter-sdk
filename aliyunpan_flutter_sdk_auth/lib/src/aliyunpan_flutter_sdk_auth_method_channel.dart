@@ -21,9 +21,7 @@ class MethodChannelAliyunpanFlutterSdkAuth
         final code = call.arguments['code'] as String?;
         final error = call.arguments['error'] as String?;
         if (error != null) {
-          authcodeController.addError(
-            AuthcodeException(message: error),
-          );
+          authcodeController.addError(AuthcodeException(message: error));
         } else if (code == null) {
           authcodeController.addError(
             const AuthcodeException(message: 'auth code is null'),
