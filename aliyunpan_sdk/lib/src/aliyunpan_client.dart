@@ -44,7 +44,7 @@ class AliyunpanClient implements ClientBase {
               refreshTokenFunction != null) {
             try {
               // update token
-              token = await refreshTokenFunction!(refreshToken);
+              updateToken(await refreshTokenFunction!(refreshToken));
               // Retry the request when 401 occurred
               error.requestOptions.headers[kAuthorizationHeaderKey] =
                   token.accessToken;
@@ -100,6 +100,11 @@ class AliyunpanClient implements ClientBase {
   }
 
   set token(Token? value) {
+    if (_token == value) return;
+    _token = value;
+  }
+
+  void updateToken(Token? value) {
     if (_closed) throw StateError('closed');
     _token = value;
     onTokenChange?.call(value);
@@ -115,7 +120,7 @@ class AliyunpanClient implements ClientBase {
     if (_closed) throw StateError('closed');
     return credentials
         .authorize(this, onStateChange ?? (state) {}, canceled ?? () => false)
-        .then((e) => token = e);
+        .then((e) => updateToken(e));
   }
 
   @override

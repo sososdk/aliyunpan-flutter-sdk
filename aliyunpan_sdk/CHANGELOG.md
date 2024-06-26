@@ -1,3 +1,7 @@
+## 1.0.6
+
+- 优化设置 token 的方法.
+
 ## 1.0.5
 
 - update dependencies.
