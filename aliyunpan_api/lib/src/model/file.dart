@@ -62,6 +62,10 @@ class FileInfo {
   /// 视频预览信息
   final AudioMetaData? videoPreviewMetadata;
 
+  final String? idPath;
+
+  final String? namePath;
+
   const FileInfo({
     required this.driveId,
     required this.fileId,
@@ -83,6 +87,8 @@ class FileInfo {
     this.imageMediaMetadata,
     this.videoMediaMetadata,
     this.videoPreviewMetadata,
+    this.idPath,
+    this.namePath,
   });
 
   factory FileInfo.fromJson(Map<String, dynamic> json) => FileInfo(
@@ -119,6 +125,8 @@ class FileInfo {
         videoPreviewMetadata: json['video_preview_metadata'] == null
             ? null
             : AudioMetaData.fromJson(json['video_preview_metadata']),
+        idPath: json['id_path'],
+        namePath: json['name_path'],
       );
 
   Map<String, dynamic> toJson() {
@@ -144,6 +152,8 @@ class FileInfo {
       'image_media_metadata': imageMediaMetadata?.toJson(),
       'video_media_metadata': videoMediaMetadata?.toJson(),
       'video_preview_metadata': videoPreviewMetadata?.toJson(),
+      'id_path': idPath,
+      'name_path': namePath,
     };
   }
 }
@@ -158,6 +168,7 @@ enum FileType {
 }
 
 enum FileCategory {
+  app,
   video,
   doc,
   audio,
@@ -165,9 +176,10 @@ enum FileCategory {
   others,
   image;
 
-  static FileCategory fromString(String name) {
-    return FileCategory.values.firstWhere((e) => e.name == name);
-  }
+  static FileCategory fromString(String name) => FileCategory.values.firstWhere(
+        (e) => e.name == name,
+        orElse: () => FileCategory.others,
+      );
 }
 
 enum VideoTemplate {

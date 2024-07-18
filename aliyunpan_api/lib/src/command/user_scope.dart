@@ -63,7 +63,7 @@ class GetVip extends Command<Vip> {
   HttpMethod get method => HttpMethod.post;
 
   @override
-  String get uri => '/v1.0/user/getVipInfo';
+  String get uri => '/business/v1.0/user/getVipInfo';
 
   @override
   dynamic get data => null;
