@@ -134,7 +134,7 @@ class SearchFiles extends Command<FileInfos> {
         'marker': marker,
         'query': query,
         'order_by': '${orderBy.name} ${orderDirection.name}',
-        'video_thumbnail_time': videoThumbnailTime,
+        'video_thumbnail_time': videoThumbnailTime.inMilliseconds,
         'video_thumbnail_width': videoThumbnailWidth,
         'image_thumbnail_width': imageThumbnailWidth,
         'return_total_count': returnTotalCount,
@@ -192,7 +192,7 @@ class StarredFiles extends Command<FileInfos> {
         'order_by': orderBy.name,
         'order_direction': orderDirection.name,
         'type': type?.name,
-        'video_thumbnail_time': videoThumbnailTime,
+        'video_thumbnail_time': videoThumbnailTime.inMilliseconds,
         'video_thumbnail_width': videoThumbnailWidth,
         'image_thumbnail_width': imageThumbnailWidth,
       };
@@ -237,7 +237,7 @@ class GetFile extends Command<FileInfo> {
   dynamic get data => {
         'drive_id': driveId,
         'file_id': fileId,
-        'video_thumbnail_time': videoThumbnailTime,
+        'video_thumbnail_time': videoThumbnailTime.inMilliseconds,
         'video_thumbnail_width': videoThumbnailWidth,
         'image_thumbnail_width': imageThumbnailWidth,
         'fields': fields,
@@ -283,7 +283,7 @@ class GetFileByPath extends Command<FileInfo> {
   dynamic get data => {
         'drive_id': driveId,
         'file_path': filePath,
-        'video_thumbnail_time': videoThumbnailTime,
+        'video_thumbnail_time': videoThumbnailTime.inMilliseconds,
         'video_thumbnail_width': videoThumbnailWidth,
         'image_thumbnail_width': imageThumbnailWidth,
         'fields': fields,
@@ -338,7 +338,7 @@ class GetBatchFiles extends Command<List<FileInfo>> {
   @override
   dynamic get data => {
         'file_list': files.map((e) => e.toJson()).toList(),
-        'video_thumbnail_time': videoThumbnailTime,
+        'video_thumbnail_time': videoThumbnailTime.inMilliseconds,
         'video_thumbnail_width': videoThumbnailWidth,
         'image_thumbnail_width': imageThumbnailWidth,
         'fields': fields,
