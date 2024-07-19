@@ -1,3 +1,8 @@
+## 1.0.9
+
+- fix: 修复刷新 token 时 debug 标识未生效的问题.
+- feat: send 方法添加 cancelToken.
+
 ## 1.0.8
 
 - update dependencies.

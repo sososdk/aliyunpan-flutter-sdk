@@ -83,7 +83,7 @@ class AliyunpanClient implements ClientBase {
 
   final bool checkExpires;
 
-  final void Function(Token? token)? onTokenChange;
+  final void Function(Token token)? onTokenChange;
 
   bool _closed = false;
 
@@ -105,7 +105,7 @@ class AliyunpanClient implements ClientBase {
     _token = value;
   }
 
-  void updateToken(Token? value) {
+  void updateToken(Token value) {
     if (_closed) throw StateError('closed');
     _token = value;
     onTokenChange?.call(value);
@@ -125,14 +125,15 @@ class AliyunpanClient implements ClientBase {
   }
 
   @override
-  Future<T> send<T>(Command<T> command) {
+  Future<T> send<T>(Command<T> command, {CancelToken? cancelToken}) {
     if (_closed) throw StateError('closed');
     final headers = <String, dynamic>{};
     if (command.authorized) {
       headers[kAuthorizationHeaderKey] = 'Bearer ${token.accessToken}';
     }
     return dio.send('$host${command.uri}',
-        Options(method: command.method.name, headers: headers), command);
+        Options(method: command.method.name, headers: headers), command,
+        cancelToken: cancelToken);
   }
 
   late final _uploader = Uploader(this);
@@ -153,9 +154,14 @@ class AliyunpanClient implements ClientBase {
 }
 
 extension DioExtension on Dio {
-  Future<T> send<T>(String url, Options options, Command<T> command) {
+  Future<T> send<T>(
+    String url,
+    Options options,
+    Command<T> command, {
+    CancelToken? cancelToken,
+  }) {
     return request<Map<String, dynamic>>(url,
-            data: command.data, options: options)
+            data: command.data, options: options, cancelToken: cancelToken)
         .then((e) => command.parse(e.data))
         .onError<DioException>((error, stackTrace) => () async {
               final data = error.response?.data;
