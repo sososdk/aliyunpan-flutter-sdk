@@ -49,9 +49,10 @@ class AliyunpanClient implements ClientBase {
               error.requestOptions.headers[kAuthorizationHeaderKey] =
                   token.accessToken;
               final dio = Dio(BaseOptions(receiveDataWhenStatusError: true))
-                ..interceptors.add(
-                  LogInterceptor(requestBody: true, responseBody: true),
-                );
+                ..interceptors.addAll([
+                  if (debug)
+                    LogInterceptor(requestBody: true, responseBody: true),
+                ]);
               return handler.resolve(await dio.fetch(error.requestOptions));
             } catch (e) {
               if (e is DioException) {
