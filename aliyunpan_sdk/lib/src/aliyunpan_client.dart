@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:aliyunpan_api/aliyunpan_api.dart';
 import 'package:anio/anio.dart' as anio;
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
+import 'package:xml/xml.dart';
 
 import '../aliyunpan_sdk.dart';
 import 'utils.dart';
@@ -140,9 +142,67 @@ class AliyunpanClient implements ClientBase {
 
   Uploader get uploader => _uploader;
 
+  Future<FileInfo> upload(
+    UploadResource resource,
+    String driveId,
+    String name, {
+    String taskId = '',
+    int retries = 3,
+    String? parentFileId,
+    bool useProof = true,
+    CheckNameMode checkNameMode = CheckNameMode.refuse,
+    int chunkSize = 16 * 1024 * 1024,
+    int maxConcurrent = 1,
+    void Function(UploadTaskProgressUpdate update)? onUpdate,
+  }) {
+    return UploadTaskRunner(
+      this,
+      onUpdate,
+      UploadTask(
+        taskId,
+        resource,
+        driveId,
+        name,
+        retries: retries,
+        parentFileId: parentFileId,
+        useProof: useProof,
+        checkNameMode: checkNameMode,
+        chunkSize: chunkSize,
+        maxConcurrent: maxConcurrent,
+      ),
+    ).start();
+  }
+
   late final _downloader = Downloader(this);
 
   Downloader get downloader => _downloader;
+
+  Future<void> download(
+    DownloadResource resource,
+    String driveId,
+    String fileId, {
+    String taskId = '',
+    int retries = 3,
+    Duration expire = const Duration(seconds: 900),
+    int chunkSize = 16 * 1024 * 1024,
+    int maxConcurrent = 1,
+    void Function(DownloadTaskProgressUpdate update)? onUpdate,
+  }) {
+    return DownloadTaskRunner(
+      this,
+      onUpdate,
+      DownloadTask(
+        taskId,
+        resource,
+        driveId,
+        fileId,
+        retries: retries,
+        expire: expire,
+        chunkSize: chunkSize,
+        maxConcurrent: maxConcurrent,
+      ),
+    ).start();
+  }
 
   Future close() async {
     if (_closed) return;
@@ -184,9 +244,10 @@ extension DioExtension on Dio {
 
 const kOneSecond = Duration(seconds: 1);
 
-sealed class Task implements Comparable<Task> {
+sealed class Task<R> implements Comparable<Task> {
   Task(
-    this.path, {
+    this.id,
+    this.resource, {
     this.priority = 5,
     this.retries = 3,
     DateTime? createTime,
@@ -194,13 +255,16 @@ sealed class Task implements Comparable<Task> {
         _retriesRemaining = retries;
 
   Task.fromJson(Map<String, dynamic> json)
-      : path = json['path'],
+      : id = json['id'],
+        resource = json['resource'],
         priority = json['priority'],
         retries = json['retries'],
         _retriesRemaining = json['retries'],
         createTime = DateTime.parse(json['createTime']);
 
-  final String path;
+  final Object id;
+
+  final R resource;
 
   /// Priority of this task, relative to other tasks.
   /// Range 0 <= priority <= 10 with 0 being the highest priority.
@@ -235,7 +299,8 @@ sealed class Task implements Comparable<Task> {
   }
 
   Map<String, dynamic> toJson() => {
-        'path': path,
+        'id': id,
+        'resource': resource,
         'priority': priority,
         'retries': retries,
         'createTime': createTime.toString(),

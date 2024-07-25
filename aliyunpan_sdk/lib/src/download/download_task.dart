@@ -1,37 +1,30 @@
 part of '../aliyunpan_client.dart';
 
-class DownloadChunk {
-  DownloadChunk(this.start, this.end, {int count = 0}) : _count = count;
+abstract class DownloadResource {
+  const DownloadResource();
 
-  factory DownloadChunk.fromJson(Map<String, dynamic> json) => DownloadChunk(
-        json['start'],
-        json['end'],
-        count: json['count'],
-      );
+  Future<RandomAccessFile> open([FileMode mode = FileMode.write]);
 
-  /// 文件开始位置
-  final int start;
-
-  /// 文件结束位置
-  final int? end;
-
-  /// 下载进度
-  int _count;
-
-  String get rangeHeaderValue => 'bytes=${start + _count}-${end! - 1}';
-
-  bool get isCompleted => end == null ? false : end! - start == _count;
-
-  Map<String, dynamic> toJson() => {
-        'start': start,
-        'end': end,
-        'count': _count,
-      };
+  Map<String, dynamic> toJson();
 }
 
-class DownloadTask extends Task {
+class DownloadFile extends DownloadResource {
+  final File file;
+
+  const DownloadFile(this.file);
+
+  @override
+  Future<RandomAccessFile> open([FileMode mode = FileMode.write]) =>
+      file.open(mode: mode);
+
+  @override
+  Map<String, dynamic> toJson() => {'path': file.path};
+}
+
+class DownloadTask extends Task<DownloadResource> {
   DownloadTask(
-    super.path,
+    super.id,
+    super.resource,
     this.driveId,
     this.fileId, {
     super.priority,
@@ -39,7 +32,13 @@ class DownloadTask extends Task {
     super.createTime,
     this.expire = const Duration(seconds: 900),
     this.chunkSize = 16 * 1024 * 1024,
-    int maxConcurrent = 10,
+    // 根据应用分级不同，单用户维度文件下载接口最大并发的限制不同：
+    // ● 普通应用：文件分片下载的并发数为 3，即某用户使用 App 时，可以同时下载 1 个文件的 3 个分片，或者同时下载 3 个文件的各 1 个分片。
+    // ● 认证应用：文件分片下载的并发数为 6，即某用户使用 App 时，可以同时下载 1 个文件的 6 个分片，或者同时下载 6 个文件的各 1 个分片。
+    // ● 风险应用：文件分片下载的并发数为 2，即某用户使用 App 时，可以同时下载 1 个文件的 2 个分片，或者同时下载 2 个文件的各 1 个分片。
+    // 超过并发，再次调用接口，报错 http status：403。
+    // 由于限制是单用户维度，存在用户在其他三方应用占满并发导致无法在当前应用继续使用的情况，请开发者为这种情况提供友好的产品提示。
+    int maxConcurrent = 3,
   })  : assert(0 < maxConcurrent && maxConcurrent <= 10),
         _maxConcurrent = maxConcurrent;
 
@@ -87,13 +86,13 @@ class DownloadTask extends Task {
         'chunks': _chunks?.map((e) => e.toJson()).toList(),
       };
 
-  _DownloadTaskRunner? _runner;
+  DownloadTaskRunner? _runner;
 
   Future<void> start(
     AliyunpanClient client,
     void Function(DownloadTaskProgressUpdate update) onUpdate,
   ) {
-    return (_runner = _DownloadTaskRunner(client, onUpdate, this))
+    return (_runner = DownloadTaskRunner(client, onUpdate, this))
         .start()
         .whenComplete(() => _runner = null);
   }
@@ -101,22 +100,74 @@ class DownloadTask extends Task {
   void cancel() => _runner?.cancel();
 }
 
-class _DownloadTaskRunner {
-  _DownloadTaskRunner(this.client, this.onUpdate, this.task) {
+class DownloadChunk {
+  DownloadChunk(this.start, this.end, {int count = 0}) : _count = count;
+
+  factory DownloadChunk.fromJson(Map<String, dynamic> json) => DownloadChunk(
+        json['start'],
+        json['end'],
+        count: json['count'],
+      );
+
+  /// 文件开始位置
+  final int start;
+
+  /// 文件结束位置
+  final int? end;
+
+  /// 下载进度
+  int _count;
+
+  String get rangeHeaderValue => 'bytes=${start + _count}-${end! - 1}';
+
+  bool get isCompleted => end == null ? false : end! - start == _count;
+
+  Map<String, dynamic> toJson() => {
+        'start': start,
+        'end': end,
+        'count': _count,
+      };
+}
+
+class DownloadTaskRunner {
+  DownloadTaskRunner(this.client, this.onUpdate, this.task) {
     _dio.interceptors.add(QueuedInterceptorsWrapper(
       onError: (error, handler) async {
-        if (error.response?.statusCode != 403) {
-          return handler.next(error);
+        ApiException? exception;
+        if (error.response?.statusCode == 403) {
+          final data = error.response?.data as ResponseBody?;
+          if (data != null) {
+            final input = await utf8.decoder.bind(data.stream).join();
+            try {
+              final document = XmlDocument.parse(input);
+              final tag = document.findElements('Error').singleOrNull;
+              final code = tag?.findElements('Code').singleOrNull?.innerText;
+              final message =
+                  tag?.findElements('Message').singleOrNull?.innerText;
+              exception = ApiException(code: code ?? '', message: message);
+            } catch (_) {
+              return handler.next(error..response?.data = input);
+            }
+          }
         }
-        try {
-          final url = await _updateUrl();
-          final options = error.requestOptions.copyWith(path: url);
-          return handler.resolve(await Dio().fetch(options));
-        } catch (e) {
-          if (e is DioException) {
-            return handler.reject(e);
+        if (exception?.code == 'AccessDenied') {
+          try {
+            // 链接已过期, 更新链接
+            final url = await _updateUrl();
+            final options = error.requestOptions.copyWith(path: url);
+            return handler.resolve(await Dio().fetch(options));
+          } catch (e) {
+            if (e is DioException) {
+              return handler.reject(e);
+            } else {
+              return handler.reject(error.copyWith(error: e));
+            }
+          }
+        } else {
+          if (exception == null) {
+            return handler.next(error);
           } else {
-            return handler.reject(error.copyWith(error: e));
+            return handler.next(error..response?.data = exception);
           }
         }
       },
@@ -124,7 +175,7 @@ class _DownloadTaskRunner {
   }
 
   final AliyunpanClient client;
-  final void Function(DownloadTaskProgressUpdate update) onUpdate;
+  final void Function(DownloadTaskProgressUpdate update)? onUpdate;
   final DownloadTask task;
   final _dio = Dio();
 
@@ -133,11 +184,11 @@ class _DownloadTaskRunner {
   late int _lastProgressUpdateCount;
   late DateTime _lastProgressUpdateTime;
   final _speeds = <double>[];
+  final _cancelToken = CancelToken();
 
   var _started = false;
-  var _cancelled = false;
 
-  void cancel() => _cancelled = true;
+  void cancel() => _cancelToken.cancel();
 
   final _queue = PriorityQueue<DownloadChunk>((p0, p1) {
     return p0.start.compareTo(p1.start);
@@ -168,7 +219,19 @@ class _DownloadTaskRunner {
           _running.remove(chunk);
           _advanceQueue();
         }).catchError((e, s) {
-          if (!_completer.isCompleted) _completer.completeError(e, s);
+          if (e is ApiException && e.code == 'RequestDeniedByCallback') {
+            // 并发错误, 重试!!!
+            _running.remove(chunk);
+            _queue.add(chunk);
+            _advanceQueue();
+          } else {
+            if (!_completer.isCompleted) {
+              _completer.completeError(
+                _cancelToken.isCancelled ? const TaskCancelledException() : e,
+                s,
+              );
+            }
+          }
         });
       } else {
         break; // if no suitable task, done
@@ -210,7 +273,7 @@ class _DownloadTaskRunner {
         ? null
         : Duration(milliseconds: (remainingCount / networkSpeed).round());
 
-    onUpdate(DownloadTaskProgressUpdate(
+    onUpdate?.call(DownloadTaskProgressUpdate(
       task,
       progress: progress,
       networkSpeed: _speeds.average,
@@ -220,7 +283,9 @@ class _DownloadTaskRunner {
 
   Future<void> start() async {
     final List<DownloadChunk> chunks;
-    if (!task.resume) {
+    if (task.resume) {
+      chunks = task._chunks!;
+    } else {
       if (task._ranges == null) await _preDownload();
       // 分块
       final length = task._length;
@@ -234,12 +299,10 @@ class _DownloadTaskRunner {
       } else {
         chunks = task._chunks = [DownloadChunk(0, null)];
       }
-    } else {
-      chunks = task._chunks!;
     }
     // 开始下载
     _started = true;
-    _fileHandle = await File(task.path).openHandle(mode: FileMode.append);
+    _fileHandle = (await task.resource.open(FileMode.append)).handle();
     _completer = Completer();
     _lastProgressUpdateCount = task.downloadedCount;
     _lastProgressUpdateTime = DateTime.now();
@@ -248,45 +311,39 @@ class _DownloadTaskRunner {
     });
     _queue.addAll(chunks.where((e) => !e.isCompleted));
     _advanceQueue();
-    return _completer.future.whenComplete(() {
+    return _completer.future.whenComplete(() async {
       networkSpeedTimer.cancel();
-      _fileHandle.close();
+      _cancelToken.cancel();
       _dio.close(force: true);
+      await _fileHandle.close();
     });
   }
 
   Future<void> _downloadChunk(DownloadChunk chunk) async {
-    if (_cancelled) throw const TaskCancelledException();
+    if (_cancelToken.isCancelled) throw const TaskCancelledException();
     final url = task._url!.url;
     final method = task._url!.method;
-    final response = await _dio.request<ResponseBody>(url,
-        options: Options(
-            method: method,
-            responseType: ResponseType.stream,
-            headers: {
-              if (task._ranges!)
-                HttpHeaders.rangeHeader: chunk.rangeHeaderValue,
-            }));
+    final response = await _dio
+        .request<ResponseBody>(url,
+            cancelToken: _cancelToken,
+            options: Options(
+                method: method,
+                responseType: ResponseType.stream,
+                headers: {
+                  if (task._ranges!)
+                    HttpHeaders.rangeHeader: chunk.rangeHeaderValue,
+                }))
+        .onError<DioException>((error, stackTrace) {
+      final data = error.response?.data;
+      if (data is ApiException) throw data;
+      Error.throwWithStackTrace(error, stackTrace);
+    });
     final stream = response.data!.stream;
     final sink = _fileHandle.sink(chunk.start + chunk._count).buffered();
     final completer = Completer<void>();
     StreamSubscription? subscription;
     subscription = stream.listen(
       (data) async {
-        if (_completer.isCompleted) {
-          if (!completer.isCompleted) {
-            completer.completeError(
-                StateError('completed'), StackTrace.current);
-          }
-          return;
-        }
-        if (_cancelled) {
-          if (!completer.isCompleted) {
-            completer.completeError(
-                const TaskCancelledException(), StackTrace.current);
-          }
-          return;
-        }
         subscription?.pause();
         await sink.writeFromBytes(data);
         chunk._count += data.length;
@@ -311,17 +368,22 @@ class _DownloadTaskRunner {
   Future<String> _updateUrl() async {
     task._url = await client.send(
       GetDownloadUrl(driveId: task.driveId, fileId: task.fileId),
+      cancelToken: _cancelToken,
     );
     return task._url!.url;
   }
 
   Future<void> _preDownload() async {
     final url = task._url?.url ?? await _updateUrl();
+    final cancelToken = CancelToken();
+    _cancelToken.whenCancel.whenComplete(cancelToken.cancel);
     final response = await _dio.request(url,
+        cancelToken: cancelToken,
         options: Options(
           responseType: ResponseType.stream,
           method: task._url!.method,
         ));
+    cancelToken.cancel(); // abort the request
     final acceptRangesHeader =
         response.headers.value(HttpHeaders.acceptRangesHeader);
     final lengthHeader =
@@ -331,5 +393,6 @@ class _DownloadTaskRunner {
         acceptRangesHeader == 'bytes' || response.statusCode == 206;
     task._ranges = canRanges && length != null;
     task._length = length;
+    await cancelToken.whenCancel;
   }
 }

@@ -132,7 +132,7 @@ class Downloader {
         // 失败
         _running.remove(task);
         _updatesController.add(
-          DownloadTaskStatusUpdate(task, TaskStatus.failed),
+          DownloadTaskStatusUpdate(task, TaskStatus.failed, exception: e),
         );
       }
     }

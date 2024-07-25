@@ -1,14 +1,41 @@
 part of '../aliyunpan_client.dart';
 
-class UploadTask extends Task {
+abstract class UploadResource {
+  const UploadResource();
+
+  FutureOr<int?> length();
+
+  Stream<List<int>> openRead([int? start, int? end]);
+
+  Map<String, dynamic> toJson();
+}
+
+class UploadFile extends UploadResource {
+  final File file;
+
+  const UploadFile(this.file);
+
+  @override
+  Future<int?> length() => file.length();
+
+  @override
+  Stream<List<int>> openRead([int? start, int? end]) {
+    return file.openRead(start, end);
+  }
+
+  @override
+  Map<String, dynamic> toJson() => {'path': file.path};
+}
+
+class UploadTask extends Task<UploadResource> {
   UploadTask(
-    super.path,
+    super.id,
+    super.resource,
     this.driveId,
     this.name, {
     super.priority,
     super.retries,
     super.createTime,
-    this.length,
     this.parentFileId,
     this.useProof = true,
     this.checkNameMode = CheckNameMode.refuse,
@@ -21,7 +48,6 @@ class UploadTask extends Task {
   UploadTask.fromJson(super.json)
       : driveId = json['driveId'],
         name = json['name'],
-        length = json['length'],
         parentFileId = json['parentFileId'],
         useProof = json['useProof'],
         checkNameMode = CheckNameMode.fromName(json['checkNameMode']),
@@ -37,7 +63,6 @@ class UploadTask extends Task {
   final String driveId;
   final String? parentFileId;
   final String name;
-  final int? length;
   final bool useProof;
   final CheckNameMode checkNameMode;
   final int chunkSize;
@@ -58,7 +83,6 @@ class UploadTask extends Task {
         'driveId': driveId,
         'parentFileId': parentFileId,
         'name': name,
-        'length': length,
         'useProof': useProof,
         'checkNameMode': checkNameMode.name,
         'chunkSize': chunkSize,
@@ -68,13 +92,13 @@ class UploadTask extends Task {
         'parts': _parts?.map((e) => e.toJson()).toList(),
       };
 
-  _UploadTaskRunner? _runner;
+  UploadTaskRunner? _runner;
 
   Future<FileInfo> start(
     AliyunpanClient client,
     void Function(UploadTaskProgressUpdate update) onUpdate,
   ) {
-    return (_runner = _UploadTaskRunner(client, onUpdate, this))
+    return (_runner = UploadTaskRunner(client, onUpdate, this))
         .start()
         .whenComplete(() => _runner = null);
   }
@@ -82,14 +106,14 @@ class UploadTask extends Task {
   void cancel() => _runner?.cancel();
 }
 
-class _UploadTaskRunner {
-  _UploadTaskRunner(this.client, this.onUpdate, this.task);
+class UploadTaskRunner {
+  UploadTaskRunner(this.client, this.onUpdate, this.task);
 
   final AliyunpanClient client;
-  final void Function(UploadTaskProgressUpdate update) onUpdate;
+  final void Function(UploadTaskProgressUpdate update)? onUpdate;
   final UploadTask task;
 
-  late final File _file;
+  late final int? _length;
   late final Completer<FileInfo> _completer;
   late int _lastProgressUpdateCount;
   late DateTime _lastProgressUpdateTime;
@@ -163,7 +187,7 @@ class _UploadTaskRunner {
     if (timeSinceLastUpdateMicroseconds == 0) return;
     if (timeSinceLastUpdate < kOneSecond && !force) return;
 
-    final length = task.length;
+    final length = _length;
     final uploadedCount = task.uploadedCount;
     _lastProgressUpdateTime = now;
     final progress = length == null ? null : uploadedCount / length;
@@ -179,7 +203,7 @@ class _UploadTaskRunner {
         ? null
         : Duration(milliseconds: (remainingCount / networkSpeed).round());
 
-    onUpdate(UploadTaskProgressUpdate(
+    onUpdate?.call(UploadTaskProgressUpdate(
       task,
       UploadStatus.upload,
       progress: progress,
@@ -190,7 +214,7 @@ class _UploadTaskRunner {
 
   Future<FileInfo> start() async {
     final chunkSize = task.chunkSize;
-    final length = task.length;
+    final length = _length = await task.resource.length();
     List<PartInfo>? uploadedParts;
     if (!task.resume) {
       if (task.useProof && length != null) {
@@ -200,7 +224,7 @@ class _UploadTaskRunner {
       }
       if (_cancelled) throw const TaskCancelledException();
       // 秒传失败, 开始正常上传
-      onUpdate(UploadTaskProgressUpdate(task, UploadStatus.upload));
+      onUpdate?.call(UploadTaskProgressUpdate(task, UploadStatus.upload));
       final created = await client.send(CreateFile(
         driveId: task.driveId,
         parentFileId: task.parentFileId,
@@ -238,7 +262,6 @@ class _UploadTaskRunner {
             }));
     // 开始上传
     _started = true;
-    _file = File(task.path);
     _completer = Completer<FileInfo>();
     _lastProgressUpdateCount = task.uploadedCount;
     _lastProgressUpdateTime = DateTime.now();
@@ -263,7 +286,7 @@ class _UploadTaskRunner {
     var preCount = 0;
     return client.dio
         .put(partUrl,
-            data: _file.openRead(start, end),
+            data: task.resource.openRead(start, end),
             onSendProgress: (count, total) => () {
                   if (_completer.isCompleted) throw StateError('completed');
                   if (_cancelled) throw const TaskCancelledException();
@@ -300,21 +323,21 @@ class _UploadTaskRunner {
   }
 
   Future<FileInfo?> _proofUpload() async {
-    final length = task.length!;
+    final length = _length!;
     // 大于 10M 的文件先预校验
     final bool isPreHashMatched;
     if (length > 10 * 1024 * 1024) {
-      onUpdate(UploadTaskProgressUpdate(task, UploadStatus.preProof));
+      onUpdate?.call(UploadTaskProgressUpdate(task, UploadStatus.preProof));
       isPreHashMatched = await _proofCheckPreHashMatched();
     } else {
       isPreHashMatched = true;
     }
     if (!isPreHashMatched) return null;
     if (_cancelled) throw const TaskCancelledException();
-    onUpdate(UploadTaskProgressUpdate(task, UploadStatus.proof));
-    final contentHash = await (File(task.path).openRead()).sha1;
+    onUpdate?.call(UploadTaskProgressUpdate(task, UploadStatus.proof));
+    final contentHash = await task.resource.openRead().sha1;
     final proofCode = await getProofCode(
-        client.token.accessToken, length, File(task.path).openRead);
+        client.token.accessToken, length, task.resource.openRead);
     final created = await client.send(CreateFile(
       driveId: task.driveId,
       parentFileId: task.parentFileId,
@@ -340,14 +363,14 @@ class _UploadTaskRunner {
   }
 
   Future<bool> _proofCheckPreHashMatched() async {
-    final preData = await (File(task.path).openRead()).read(1024);
+    final preData = await task.resource.openRead().read(1024);
     final preHash = preData.sha1;
     try {
       await client.send(CreateFile(
           driveId: task.driveId,
           parentFileId: task.parentFileId,
           name: task.name,
-          size: task.length,
+          size: _length,
           type: FileType.file,
           preHash: preHash));
       return false;

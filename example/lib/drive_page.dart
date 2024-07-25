@@ -7,6 +7,7 @@ import 'package:flash/flash.dart';
 import 'package:flash/flash_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as path;
+import 'package:slugid/slugid.dart';
 
 import 'widget/breadcrumbs.dart';
 
@@ -119,18 +120,17 @@ class _DrivesPageState extends State<DrivesPage> {
   Future<void> uploadFile(BuildContext context) async {
     final file = await openFile();
     if (file == null) return;
-    final task = UploadTask(
-      file.path,
-      folder.driveId,
-      file.name,
-      length: await file.length(),
-      parentFileId: folder.fileId,
-      checkNameMode: CheckNameMode.autoRename,
-      useProof: false,
-    );
 
     // 上传文件
-    widget.client.uploader.enqueue(task);
+    widget.client.uploader.enqueue(UploadTask(
+      Slugid.nice().toString(),
+      UploadFile(const LocalFileSystem().file(file.path)),
+      folder.driveId,
+      file.name,
+      parentFileId: folder.fileId,
+      checkNameMode: CheckNameMode.autoRename,
+      useProof: true,
+    ));
   }
 
   Future<void> createFolder(BuildContext context) async {
@@ -310,9 +310,14 @@ class _UpdatesIndicatorState extends State<UpdatesIndicator> {
           final remainingText = progress?.timeRemaining == null
               ? '-'
               : progress!.timeRemaining!.remainingText;
+          final resource = e.resource;
+          final title = switch (resource) {
+            DownloadFile() => path.basename(resource.file.path),
+            _ => resource.toString(),
+          };
           return ListTile(
             leading: const Icon(Icons.download),
-            title: Text(path.basename(e.path)),
+            title: Text(title),
             subtitle: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -595,9 +600,12 @@ class _DrivePageState extends State<DrivePage> {
     const fileSystem = LocalFileSystem();
     final file = fileSystem.systemTempDirectory.childFile(item.name);
 
-    widget.client.downloader.enqueue(
-      DownloadTask(file.path, item.driveId, item.fileId),
-    );
+    widget.client.downloader.enqueue(DownloadTask(
+      Slugid.nice().toString(),
+      DownloadFile(const LocalFileSystem().file(file.path)),
+      item.driveId,
+      item.fileId,
+    ));
   }
 }
 
