@@ -146,6 +146,7 @@ class AliyunpanClient implements ClientBase {
     UploadResource resource,
     String driveId,
     String name, {
+    CancelToken? cancelToken,
     String taskId = '',
     int retries = 3,
     String? parentFileId,
@@ -155,7 +156,7 @@ class AliyunpanClient implements ClientBase {
     int maxConcurrent = 1,
     void Function(UploadTaskProgressUpdate update)? onUpdate,
   }) {
-    return UploadTaskRunner(
+    final runner = UploadTaskRunner(
       this,
       onUpdate,
       UploadTask(
@@ -170,7 +171,13 @@ class AliyunpanClient implements ClientBase {
         chunkSize: chunkSize,
         maxConcurrent: maxConcurrent,
       ),
-    ).start();
+    );
+    if (cancelToken != null && cancelToken.isCancelled) {
+      throw cancelToken.cancelError!;
+    } else {
+      cancelToken?.whenCancel.whenComplete(runner.cancel);
+    }
+    return runner.start();
   }
 
   late final _downloader = Downloader(this);
@@ -181,6 +188,7 @@ class AliyunpanClient implements ClientBase {
     DownloadResource resource,
     String driveId,
     String fileId, {
+    CancelToken? cancelToken,
     String taskId = '',
     int retries = 3,
     Duration expire = const Duration(seconds: 900),
@@ -188,7 +196,7 @@ class AliyunpanClient implements ClientBase {
     int maxConcurrent = 1,
     void Function(DownloadTaskProgressUpdate update)? onUpdate,
   }) {
-    return DownloadTaskRunner(
+    final runner = DownloadTaskRunner(
       this,
       onUpdate,
       DownloadTask(
@@ -201,7 +209,13 @@ class AliyunpanClient implements ClientBase {
         chunkSize: chunkSize,
         maxConcurrent: maxConcurrent,
       ),
-    ).start();
+    );
+    if (cancelToken != null && cancelToken.isCancelled) {
+      throw cancelToken.cancelError!;
+    } else {
+      cancelToken?.whenCancel.whenComplete(runner.cancel);
+    }
+    return runner.start();
   }
 
   Future close() async {

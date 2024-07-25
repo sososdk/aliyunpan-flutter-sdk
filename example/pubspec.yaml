@@ -41,7 +41,7 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
-  aliyunpan_sdk: ^1.0.9
+  aliyunpan_sdk: ^1.0.11
   aliyunpan_flutter_sdk_auth: ^1.0.5
   webview_flutter: ^4.8.0
   flash: ^3.1.1
