@@ -1,8 +1,9 @@
 import 'dart:async';
 
 import 'package:aliyunpan_api/aliyunpan_api.dart';
-import 'package:aliyunpan_flutter_sdk_auth/src/aliyunpan_flutter_sdk_auth.dart';
 import 'package:flutter/foundation.dart';
+
+import 'src/aliyunpan_flutter_sdk_auth.dart';
 
 export 'src/aliyunpan_flutter_sdk_auth.dart';
 

@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
 import 'dart:math' as math;
+
+import 'package:flutter/material.dart';
 
 extension ListViewExtended on ListView {
   /// Creates a fixed-length scrollable linear array of list "items" separated
@@ -72,7 +73,8 @@ extension ListViewExtended on ListView {
     final int childCount =
         _computeSemanticChildCount(itemCount, headerBuilder, footerBuilder);
 
-    SliverChildBuilderDelegate childrenDelegate = SliverChildBuilderDelegate(
+    final SliverChildBuilderDelegate childrenDelegate =
+        SliverChildBuilderDelegate(
       (BuildContext context, int index) {
         // final int itemIndex = (index ~/ 2);
         final int delta = ((headerBuilder != null) ? 1 : 0);

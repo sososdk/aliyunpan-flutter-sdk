@@ -11,9 +11,9 @@
 ### 添加依赖:
 ```yaml
 dependencies:
-  aliyunpan_sdk: ^1.0.11
+  aliyunpan_sdk: ^1.0.12
   # 使用阿里云盘客户端登录时, 需要添加此依赖
-  aliyunpan_flutter_sdk_auth: ^1.0.5
+  aliyunpan_flutter_sdk_auth: ^1.0.6
 ```
 
 ### 配置:

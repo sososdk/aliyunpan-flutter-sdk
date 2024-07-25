@@ -17,6 +17,7 @@ include: package:lints/recommended.yaml
 
 linter:
   rules:
+    unawaited_futures: true
     prefer_final_locals: true
     prefer_single_quotes: true
     prefer_relative_imports: true

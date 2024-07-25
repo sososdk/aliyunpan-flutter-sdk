@@ -215,7 +215,7 @@ class DownloadTaskRunner {
       final chunk = _getNextChunk();
       if (chunk != null) {
         _running.add(chunk);
-        _downloadChunk(chunk).then((_) {
+        _downloadChunk(chunk).then((_) async {
           _running.remove(chunk);
           _advanceQueue();
         }).catchError((e, s) {
@@ -358,10 +358,10 @@ class DownloadTaskRunner {
         if (!completer.isCompleted) completer.complete();
       },
     );
-    return completer.future.whenComplete(() {
-      sink.close();
-      subscription?.cancel();
+    return completer.future.whenComplete(() async {
       _updateProgress(true);
+      await sink.close();
+      await subscription?.cancel();
     });
   }
 
@@ -376,7 +376,7 @@ class DownloadTaskRunner {
   Future<void> _preDownload() async {
     final url = task._url?.url ?? await _updateUrl();
     final cancelToken = CancelToken();
-    _cancelToken.whenCancel.whenComplete(cancelToken.cancel);
+    unawaited(_cancelToken.whenCancel.whenComplete(cancelToken.cancel));
     final response = await _dio.request(url,
         cancelToken: cancelToken,
         options: Options(

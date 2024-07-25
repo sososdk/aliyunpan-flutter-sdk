@@ -154,7 +154,7 @@ class UploadTaskRunner {
       final chunk = _getNextChunk();
       if (chunk != null) {
         _running.add(chunk);
-        _uploadChunk(chunk).then((_) {
+        _uploadChunk(chunk).then((_) async {
           _running.remove(chunk);
           _advanceQueue();
         }).catchError((e, s) {
@@ -270,7 +270,7 @@ class UploadTaskRunner {
     });
     _queue.addAll(uploadParts);
     _advanceQueue();
-    return _completer.future.whenComplete(() {
+    return _completer.future.whenComplete(() async {
       networkSpeedTimer.cancel();
     });
   }
@@ -298,7 +298,7 @@ class UploadTaskRunner {
               if (end != null) Headers.contentLengthHeader: end - start,
               Headers.contentTypeHeader: '' // 不能传 Content-Type，否则会失败
             }))
-        .whenComplete(() => _updateProgress(true));
+        .whenComplete(() async => _updateProgress(true));
   }
 
   Future<List<PartInfo>> _getUploadParts() async {

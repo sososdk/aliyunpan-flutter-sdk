@@ -83,11 +83,7 @@ class _MyHomePageState extends State<MyHomePage> {
     refreshTokenFunction: refreshToken,
     debug: false,
     onTokenChange: (token) => SharedPreferences.getInstance().then((e) {
-      if (token == null) {
-        e.remove('key_token');
-      } else {
-        e.setString('key_token', jsonEncode(token));
-      }
+      e.setString('key_token', jsonEncode(token));
     }),
   );
 

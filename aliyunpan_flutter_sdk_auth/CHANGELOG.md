@@ -1,3 +1,7 @@
+## 1.0.6
+
+* update analysis.
+
 ## 1.0.5
 
 * update dependencies.

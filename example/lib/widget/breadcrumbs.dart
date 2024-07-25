@@ -113,13 +113,13 @@ class Breadcrumbs<T> extends StatelessWidget {
 
                     return TextButton(
                       style: ButtonStyle(
-                        overlayColor: MaterialStateProperty.all(overlayColor),
+                        overlayColor: WidgetStateProperty.all(overlayColor),
                         minimumSize: (effectiveTheme.itemMinimumSize != null)
-                            ? MaterialStateProperty.all(
+                            ? WidgetStateProperty.all(
                                 effectiveTheme.itemMinimumSize)
                             : null,
                         padding: (effectiveTheme.itemPadding != null)
-                            ? MaterialStateProperty.all(
+                            ? WidgetStateProperty.all(
                                 effectiveTheme.itemPadding)
                             : null,
                         tapTargetSize:
