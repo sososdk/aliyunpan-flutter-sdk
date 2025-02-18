@@ -32,9 +32,7 @@ class FlutterAuthenticator implements Authenticator {
 
   @override
   Future<String> authorize(String redirectUri) async {
-    // 检查阿里云盘客户端是否安装. (仅支持 android, ios)
-    final useSSO = forceSSO || !await AliyunpanFlutterSdkAuth.isAppInstalled();
-    if (useSSO) {
+    if (forceSSO) {
       final uri = Uri.parse(redirectUri);
       final url = await onAuthRedirect(
           uri.replace(
@@ -58,6 +56,19 @@ class FlutterAuthenticator implements Authenticator {
       }
       return code;
     } else {
+      if (!await AliyunpanFlutterSdkAuth.isAppInstalled()) {
+        final uri = Uri.parse(redirectUri);
+        redirectUri = uri
+            .replace(
+              scheme: 'https',
+              host: 'www.alipan.com',
+              path: '/o/oauth/authorize',
+              queryParameters: Map.of(uri.queryParameters)
+                ..['source'] = 'app_link'
+                ..['deep_link'] = 'true',
+            )
+            .toString();
+      }
       if (!await AliyunpanFlutterSdkAuth.requestAuthcode(redirectUri)) {
         throw const AuthcodeException(
           message: 'request aliyunpan app authcode failed',

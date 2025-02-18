@@ -11,9 +11,9 @@
 ### 添加依赖:
 ```yaml
 dependencies:
-  aliyunpan_sdk: ^1.0.12
+  aliyunpan_sdk: ^1.0.13
   # 使用阿里云盘客户端登录时, 需要添加此依赖
-  aliyunpan_flutter_sdk_auth: ^1.0.6
+  aliyunpan_flutter_sdk_auth: ^1.0.7
 ```
 
 ### 配置:
@@ -22,7 +22,7 @@ dependencies:
 
 在`pubspec.yaml`的`aliyunpan`进行一些配置. 具体可以参考[pubspec.yaml](../example/pubspec.yaml#L24).
 
-- app_id. 推荐. 它将用于生成iOS的url_scheme和LSApplicationQueriesSchemes.
+- app_id. 推荐. 它将用于生成iOS的`CFBundleURLSchemes`和`LSApplicationQueriesSchemes` 和 android 的 `manifestPlaceholders["aliyunpan-appid"]`
 - flutter_activity. 可选. 这个通常是用于Android的冷启动。如果不设置任何值，`aliyunpan sdk`将尝试启动launcher activity.
 
 * For iOS
@@ -39,7 +39,7 @@ dependencies:
 
 * For Android
 
-  修改`applicationId`为你在阿里云盘开放平台注册时填写的`应用包名`。参考[build.gradle](../example/android/app/build.gradle#L45).
+  修改`applicationId`为你在阿里云盘开放平台注册时填写的`应用包名`。参考[build.gradle](../example/android/app/build.gradle.kts#L24).
 
 ## 使用
 
@@ -82,7 +82,7 @@ await client.authorize(credentials);
 - FlutterCredentials.server
 - FlutterCredentials.secret
 
-> Flutter Credentials 使用`阿里云盘客户端`或者`WebView`获取授权码, 然后获取 token.
+> Flutter Credentials 使用`阿里云盘客户端`,`浏览器`或者`WebView`获取授权码, 然后获取 token.
 
 - QrcodeCredentials.pkce
 - QrcodeCredentials.server

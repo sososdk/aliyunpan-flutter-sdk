@@ -200,7 +200,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       }
                       setState(() {});
                     },
-                    child: const Text('OAuth - WEB - SECRET'),
+                    child: const Text('OAuth - SSO - SECRET'),
                   ),
                   ElevatedButton(
                     onPressed: () async {
@@ -221,7 +221,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       }
                       setState(() {});
                     },
-                    child: const Text('OAuth - WEB - SERVER'),
+                    child: const Text('OAuth - SSO - SERVER'),
                   ),
                 ],
               )
@@ -329,7 +329,7 @@ class _FlutterPkceOAuthState extends State<FlutterPkceOAuth> {
                   }
                   widget.onStateChange();
                 },
-          child: const Text('OAuth - APP - PKCE'),
+          child: const Text('OAuth - APP(Browser) - PKCE'),
         ),
         if (authcodeSubscription != null)
           ElevatedButton(
@@ -393,7 +393,7 @@ class _FlutterServerOAuthState extends State<FlutterServerOAuth> {
                   }
                   widget.onStateChange();
                 },
-          child: const Text('OAuth - APP - SERVER'),
+          child: const Text('OAuth - APP(Browser) - SERVER'),
         ),
         if (authcodeSubscription != null)
           ElevatedButton(
@@ -457,7 +457,7 @@ class _FlutterSecretOAuthState extends State<FlutterSecretOAuth> {
                   }
                   widget.onStateChange();
                 },
-          child: const Text('OAuth - APP - SECRET'),
+          child: const Text('OAuth - APP(Browser) - SECRET'),
         ),
         if (authcodeSubscription != null)
           ElevatedButton(

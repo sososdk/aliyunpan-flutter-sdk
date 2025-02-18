@@ -73,7 +73,17 @@ class AliyunpanFlutterSdkAuthPlugin : FlutterPlugin, MethodCallHandler, Activity
 
     override fun onNewIntent(intent: Intent): Boolean {
         return intent.getAliyunpanCallbackIntent()?.let {
-            channel.invokeMethod("onAuthcode", mapOf("error" to it.getStringExtra("error"), "code" to it.getStringExtra("code")))
+            val error: String?
+            val code: String?
+            val data = it.data
+            if (data == null) {
+                error = it.getStringExtra("error")
+                code = it.getStringExtra("code")
+            } else {
+                error = data.getQueryParameter("error")
+                code = data.getQueryParameter("code")
+            }
+            channel.invokeMethod("onAuthcode", mapOf("error" to error, "code" to code))
             true
         } ?: run {
             false

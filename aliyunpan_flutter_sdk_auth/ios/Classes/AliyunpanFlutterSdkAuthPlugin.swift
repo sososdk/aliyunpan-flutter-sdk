@@ -16,7 +16,7 @@ public class AliyunpanFlutterSdkAuthPlugin: NSObject, FlutterPlugin {
   var channel: FlutterMethodChannel;
 
   public func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
-    if (url.scheme?.starts(with: "smartdrive") == true) {
+    if (url.scheme?.starts(with: "smartdrive") == true || url.scheme?.starts(with: "ypauth") == true) {
       let queryItems = url.queryItems
       self.channel.invokeMethod("onAuthcode", arguments: ["code": queryItems.first(where: { $0.name == "code" })?.value, "error": queryItems.first(where: { $0.name == "error" })?.value])
       return true

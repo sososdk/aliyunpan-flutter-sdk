@@ -1,4 +1,4 @@
-library aliyunpan_sdk;
+library;
 
 export 'package:aliyunpan_api/aliyunpan_api.dart';
 

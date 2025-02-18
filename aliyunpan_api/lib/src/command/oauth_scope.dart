@@ -13,6 +13,7 @@ class GetAuthorize extends Command<String> {
     this.state,
     this.relogin = false,
     this.autoLogin = false,
+    required this.source,
   });
 
   final String appId;
@@ -25,7 +26,7 @@ class GetAuthorize extends Command<String> {
   final String? state;
   final bool relogin;
   final bool autoLogin;
-  final String source = 'app';
+  final String source;
 
   @override
   bool get authorized => false;

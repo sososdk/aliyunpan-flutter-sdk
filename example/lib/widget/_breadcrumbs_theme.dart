@@ -100,7 +100,7 @@ class BreadcrumbsThemeData with Diagnosticable {
   /// (the app theme is taken from the `context`).
   Color getInactiveItemColor(BuildContext context, [Color? color]) {
     return inactiveItemColor ??
-        (color ?? getItemColor(context, color)).withOpacity(0.75);
+        (color ?? getItemColor(context, color)).withValues(alpha: 0.75);
   }
 
   /// Returns the color of the [separatorIcon].
@@ -109,7 +109,7 @@ class BreadcrumbsThemeData with Diagnosticable {
   /// (the app theme is taken from the `context`).
   Color getSeparatorColor(BuildContext context, [Color? color]) {
     return separatorColor ??
-        (color ?? getItemColor(context, color)).withOpacity(0.45);
+        (color ?? getItemColor(context, color)).withValues(alpha: 0.45);
   }
 
   /// Returns the minimum size of the area within which the item may be pressed.
@@ -124,7 +124,7 @@ class BreadcrumbsThemeData with Diagnosticable {
   /// (the app theme is taken from the `context`).
   Color getOverlayColor(BuildContext context, [Color? color]) {
     return overlayColor ??
-        (color ?? getItemColor(context, color)).withOpacity(0.12);
+        (color ?? getItemColor(context, color)).withValues(alpha: 0.12);
   }
 
   /// Returns the separator icon that is placed between the breadcrumb items.

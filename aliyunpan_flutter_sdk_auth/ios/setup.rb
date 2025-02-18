@@ -46,7 +46,7 @@ project = Xcodeproj::Project.open(project_path)
 project.targets.each do |target|
     if target.name == "Runner"
         app_id = options_dict[:app_id]
-        url_scheme = "smartdrive#{app_id}"
+        url_scheme = "ypauth#{app_id}"
 
         sectionObject = {}
         project.objects.each do |object|

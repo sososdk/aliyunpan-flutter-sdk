@@ -1,4 +1,4 @@
-library aliyunpan_api;
+library;
 
 export 'src/client.dart';
 export 'src/command/album_scope.dart';

@@ -577,9 +577,9 @@ class _DrivePageState extends State<DrivePage> {
       setState(() {
         future = getFiles();
       });
-      Toast.show(context, const Text('删除成功'));
+      if (context.mounted) Toast.show(context, const Text('删除成功'));
     }).catchError((e, s) {
-      Toast.show(context, Text('删除失败: $e'));
+      if (context.mounted) Toast.show(context, Text('删除失败: $e'));
     });
   }
 
@@ -590,9 +590,9 @@ class _DrivePageState extends State<DrivePage> {
       setState(() {
         future = getFiles();
       });
-      Toast.show(context, const Text('移到回收站成功'));
+      if (context.mounted) Toast.show(context, const Text('移到回收站成功'));
     }).catchError((e, s) {
-      Toast.show(context, Text('移到回收站失败: $e'));
+      if (context.mounted) Toast.show(context, Text('移到回收站失败: $e'));
     });
   }
 

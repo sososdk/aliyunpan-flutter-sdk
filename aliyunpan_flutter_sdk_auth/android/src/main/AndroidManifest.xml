@@ -1,6 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.github.sososdk.aliyunpan_flutter_sdk_auth">
 
+    <queries>
+        <package android:name="com.alicloud.databox" />
+    </queries>
+
     <application>
         <activity
             android:name=".AuthActivity"
@@ -8,6 +12,20 @@
         <activity-alias
             android:name="${applicationId}.ypauth.YPAuthActivity"
             android:exported="true"
-            android:targetActivity=".AuthActivity" />
+            android:targetActivity=".AuthActivity">
+            <!-- targetSdk >= 33 需要适配 intent-filter  -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+            </intent-filter>
+            <!--   浏览器授权回调    -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="ypauth${aliyunpan-appid}" />
+            </intent-filter>
+        </activity-alias>
     </application>
 </manifest>

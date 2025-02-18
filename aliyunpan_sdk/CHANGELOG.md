@@ -1,3 +1,7 @@
+## 1.0.13
+
+- update dependencies.
+
 ## 1.0.12
 
 - fix: 修复下载分片时未等待 sink 关闭完成的问题.

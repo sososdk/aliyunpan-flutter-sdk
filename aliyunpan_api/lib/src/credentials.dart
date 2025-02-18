@@ -58,8 +58,6 @@ class FlutterCredentials extends Credentials {
 
   final String bundleId;
   final String? appSecret;
-  final String redirectUri = 'oob';
-  final String responseType = 'code';
   final CodeChallenge? challenge;
   final String? state;
   final bool relogin;
@@ -85,6 +83,7 @@ class FlutterCredentials extends Credentials {
       state: state,
       relogin: relogin,
       autoLogin: autoLogin,
+      source: source,
     ));
     // 3. 获取授权码
     final code = await authenticator.authorize(redirectUri);
